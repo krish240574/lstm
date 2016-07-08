@@ -38,3 +38,28 @@
 
  ct←(it×at)+(ft×ctminus1)
  ctminus1←ct
+ 
+ ⍝backward pass
+ dExdH←((⍴ht))⍴((1000?1000)÷1000000) ⍝ random numbers for err derivative, for now
+
+ dExdot←dExdH×(7○ct)
+
+ dExdct←dExdct+dExdH×ot×(1-(7○ct)*2)
+
+ dExdit←dExdct×at
+ dExdft←dExdct×ctminus1
+ dExdat←dExdct×it
+ dExdctminus1←dExdct×ft
+
+ dExdahat←dExdat×(1-(7○ahat)*2)
+ dExdihat←dExdit×it×(1-it)
+ dExdfhat←dExdft×ft×(1-dExdft)
+ dxEdohat←dExdot×ot×(1-dExdot)
+ dzt←⍉(dExdahat,dExdihat,dExdfhat,dExdohat)
+
+ It←(2 1)⍴((xt)(htminus1))
+ dExdWt←dzt+.×⍉(It)
+ 
+ ⍝ Now to use dExdWt in a gradient descent algo 
+ 
+
