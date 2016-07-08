@@ -1,2 +1,3 @@
 # lstm
-Paper implementation for Long short term memory. 
+Paper implementation for Long short-term memory. 
+
