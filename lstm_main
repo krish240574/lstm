@@ -51,10 +51,10 @@
  dExdat←dExdct×it
  dExdctminus1←dExdct×ft
 
- dExdahat←dExdat×(1-(7○ahat)*2)
+ dExdahat←dExdat×(1-(7○athat)*2)
  dExdihat←dExdit×it×(1-it)
  dExdfhat←dExdft×ft×(1-dExdft)
- dxEdohat←dExdot×ot×(1-dExdot)
+ dExdohat←dExdot×ot×(1-dExdot)
  dzt←⍉(dExdahat,dExdihat,dExdfhat,dExdohat)
 
  It←(2 1)⍴((xt)(htminus1))
