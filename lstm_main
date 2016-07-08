@@ -1,0 +1,40 @@
+ z←lstm_main
+ ⍝ http://arunmallya.github.io/writeups/nn/lstm/index.html#/2
+ ⍝ size of input vector
+ n←10
+ ⍝ number of memory cells/hidden units
+ d←4
+ ⍝ +1 for bias
+ xt←((n),1)⍴((1000?1000)÷1000000)  ⍝  Random value initialization
+ W←((4×d),(n+d))⍴((1000?1000)÷1000000)
+
+ ⍝ per cell Ws and Us
+ Wc←(n,d)⍴((1000?1000)÷1000000)
+ Wi←(n,d)⍴((1000?1000)÷1000000)
+ Wf←(n,d)⍴((1000?1000)÷1000000)
+ Wo←(n,d)⍴((1000?1000)÷1000000)
+
+ Uc←(d,d)⍴((1000?1000)÷1000000)
+ Ui←(d,d)⍴((1000?1000)÷1000000)
+ Uf←(d,d)⍴((1000?1000)÷1000000)
+ Uo←(d,d)⍴((1000?1000)÷1000000)
+
+ h0←(d,1)⍴((1000?1000)÷1000000)
+ c0←(d,1)⍴((1000?1000)÷1000000)
+
+ ⍝ Forward pass
+ ctminus1←c0
+ htminus1←h0 ⍝ for now, testing with one time tick
+ at←7○((⍉Wc)+.×xt)+(Uc+.×htminus1)
+
+ ithat←((⍉Wi)+.×xt)+(Ui+.×htminus1)
+ it←1÷(1+*(¯1×ithat))
+
+ fthat←((⍉Wf)+.×xt)+(Uf+.×htminus1)
+ ft←1÷(1+*(¯1×fthat))
+
+ othat←((⍉Wo)+.×xt)+(Uo+.×htminus1)
+ ot←1÷(1+*(¯1×othat))
+
+ ct←(it×at)+(ft×ctminus1)
+ ctminus1←ct
