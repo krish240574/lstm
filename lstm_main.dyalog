@@ -4,6 +4,18 @@
  n←10
  ⍝ number of memory cells/hidden units
  d←4
+ ⍝ Embed size for embedding layer
+ esz←10
+ ⍝ Word Embedding layer variables
+ we_W←(d,esz)⍴((1000?1000)÷1000000)
+ we_dW←(⍴we_W)⍴0
+ we_x←(1,d)⍴0
+
+ ⍝ Softmax layer vars
+ sm_W←(d,d)⍴((1000?1000)÷1000000)
+ sm_dW←(d,d)⍴0
+ sm_pred←(1,d)⍴0
+
  ⍝ +1 for bias
  xt←((n),1)⍴((1000?1000)÷1000000)
  W←((4×d),(n+d))⍴((1000?1000)÷1000000)
@@ -33,10 +45,27 @@
  hprev←(1,d)⍴0
  numInputUnits←d
  oloop←1
+ sumW←0
+ ⍝ toy example
+ X←(1 2)⍴(2 1)
+ eos←0
+ Y←(1 1)⍴2
+ ⍝ Forward pass
+ ⍝ Input layers - LSTM+Emb - train with [EOS]+X - forward
+ ⍝ reset output layers
+ ⍝ Output layers - Emb+LSTM+Softmax - train with reversed([EOS]+Y)
+
+ ⍝ Backward pass
+ ⍝ Output layers - train with reversed(Y+[EOS])
+ ⍝ Input layers - train with reversed(X)
+
+
  :While oloop≤10
      xt←((n),1)⍴((1000?1000)÷1000000)
-     counter←1
+     counter←1 ⍝ time counter
      :While counter≤numInputUnits
+         ⍝ node t gets xt, t+1 gets xt+1...
+         xt←eos,X[;counter]
          :If counter=1
              cprev←c0
              hprev←h0
@@ -44,7 +73,7 @@
              cprev[;counter]←ct[;counter-1]
              hprev[;counter]←ht[;counter-1]
          :EndIf
- ⍝ Forward pass
+         ⍝ LSTM - Forward pass
          athat[;counter]←+⌿((⍉Wc)+.×xt)+(Uc+.×⍉hprev)
          at[;counter]←7○athat[;counter]
 
@@ -64,12 +93,41 @@
          ht[;counter]←(ot[;counter])×(7○ct[;counter])
          hprev[;counter]←ht[;counter]
 
+         ⍝ Word-embedding - forward pass
+         we_x[;counter]←ht[;counter] ⍝ output of LSTM layer
+         we_o←we_W[we_x[;counter]] ⍝ output of embedding layer
+
+         ⍝ Softmax layer - forward pass
+         sm_y←sm_W+.×we_o
+         tmp←sm_y[⍋sm_y]
+         sm_ymax←tmp[⍴sm_y]
+         sm_y←*(sm_y-sm_ymax)
+         sm_y←sm_y÷(+/sm_y)
+         sm_pred[;counter]←sm_y
+         sm_xt[;counter]←we_o
+
          counter←counter+1
      :EndWhile
-
-
-
- ⍝backward pass
+      ⍝ reverse Y+[EOS]
+     delta←⌽(Y,eos)
+ ⍝ backward pass - softmax
+     :While counter≥1
+         :If counter>1
+             sm_d←sm_pred[;counter-1]
+         :Else
+             sm_d←sm_pred[;counter]
+         :EndIf
+         sm_d[target]←sm_d[target]-1
+         :If counter>1
+             sm_dW←sm_d×.∘sm_xt[;counter-1] ⍝ outer product
+         :Else
+             sm_dW←sm_d×.∘sm_xt[;counter]
+         :EndIf
+         sm_delta←sm_W+.×sm_d
+         counter←counter-1
+     :EndWhile
+     dExdH←sm_delta ⍝ error derivative
+ ⍝   backward pass  - LSTM
      dExdct←(1,d)⍴0
      dExdot←(1,d)⍴0
      dExdit←(1,d)⍴0
@@ -110,6 +168,9 @@
          dExdWt[;counter]←⊂(⍉↑dzt[;counter])+.×⍉↑I[;counter]
          counter←counter-1
      :EndWhile
-     ⎕←dExdWt
+     sumW←sumW+dExdWt
+
+
+
      oloop←oloop+1
  :EndWhile
