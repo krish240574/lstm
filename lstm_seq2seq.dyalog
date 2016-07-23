@@ -80,6 +80,19 @@
 
      ht[INPUT;;counter]←(ot[INPUT;;counter])×(7○ct[INPUT;;counter])
      hprev[INPUT;;counter]←ht[INPUT;;counter]
+     
+     ⍝ Word-embedding - forward pass
+     we_x[INPUT;;counter]←ht[INPUT;;counter] ⍝ output of LSTM layer
+     we_o←we_W[we_x[INPUT;;counter]] ⍝ output of embedding layer
+     
+     ⍝ Softmax layer - forward pass
+     sm_y←sm_W+.×we_o[INPUT;;]
+     tmp←sm_y[⍋sm_y]
+     sm_ymax←tmp[⍴sm_y]
+     sm_y←*(sm_y-sm_ymax)
+     sm_y←sm_y÷(+/sm_y)
+     sm_pred[;counter]←sm_y
+     sm_xt[;counter]←we_o
 
      counter←counter+1
  :EndWhile
