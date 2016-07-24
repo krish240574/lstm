@@ -42,57 +42,65 @@
  cprev←(2,1,d)⍴0
  hprev←(2,1,d)⍴0
 
+ ⍝   backward pass  - LSTM
+ dExdct←(2,1,d)⍴0
+ dExdot←(2,1,d)⍴0
+ dExdit←(2,1,d)⍴0
+ dExdft←(2,1,d)⍴0
+ dExdat←(2,1,d)⍴0
+ dExdct←(2,1,d)⍴0
+ dzt←(2,1,d)⍴0
+ I←(2,1,d)⍴0
+ dExdWt←(1,d)⍴0
+
  ⍝ toy example
- X←(1 2)⍴(2 1)
+ XX←(1 2)⍴(2 1)
  eos←0
- Y←(1 1)⍴2
+ YY←(1 1)⍴2
  ⍝ Forward pass
  ⍝ Input layers - LSTM+Emb - train with [EOS]+X - forward
  ⍝ reset output layers
  ⍝ Output layers - Emb+LSTM+Softmax - train with reversed([EOS]+Y)
 
-
+ LAYERNUM←INPUT
+ ⍝ input layers - forward pass
  counter←1
  :While counter≤d
-     xt←(1 2)⍴(eos,X[;counter])
-     :If counter=1
-         cprev[INPUT;;]←c0[INPUT;;]
-         hprev[INPUT;;]←h0[INPUT;;]
-     :Else
-         cprev[INPUT;;counter]←ct[INPUT;;counter-1]
-         hprev[INPUT;;counter]←ht[INPUT;;counter-1]
-     :EndIf
-     athat[INPUT;;counter]←+⌿(Wc[INPUT;;]+.×⍉xt)+(Uc[INPUT;;]+.×⍉hprev[INPUT;;])
-     at[INPUT;;counter]←7○athat[INPUT;;counter]
-
-     ithat←+⌿(Wi[INPUT;;]+.×⍉xt)+(Ui[INPUT;;]+.×⍉hprev[INPUT;;])
-     it[INPUT;;counter]←1÷(1+*(¯1×ithat))
-
-     fthat←+⌿(Wf[INPUT;;]+.×⍉xt)+(Uf[INPUT;;]+.×⍉hprev[INPUT;;])
-     ft[INPUT;;counter]←1÷(1+*(¯1×fthat))
-
-     othat←+⌿(Wo[INPUT;;]+.×⍉xt)+(Uo[INPUT;;]+.×⍉hprev[INPUT;;])
-     ot[INPUT;;counter]←1÷(1+*(¯1×othat))
-
-     tmp←(it[INPUT;;]×at[INPUT;;])+(ft[INPUT;;]×cprev[INPUT;;])
-     ct[INPUT;;]←tmp
-     cprev[INPUT;;counter]←ct[INPUT;;counter]
-
-     ht[INPUT;;counter]←(ot[INPUT;;counter])×(7○ct[INPUT;;counter])
-     hprev[INPUT;;counter]←ht[INPUT;;counter]
-     
-     ⍝ Word-embedding - forward pass
-     we_x[INPUT;;counter]←ht[INPUT;;counter] ⍝ output of LSTM layer
-     we_o←we_W[we_x[INPUT;;counter]] ⍝ output of embedding layer
-     
-     ⍝ Softmax layer - forward pass
-     sm_y←sm_W+.×we_o[INPUT;;]
-     tmp←sm_y[⍋sm_y]
-     sm_ymax←tmp[⍴sm_y]
-     sm_y←*(sm_y-sm_ymax)
-     sm_y←sm_y÷(+/sm_y)
-     sm_pred[;counter]←sm_y
-     sm_xt[;counter]←we_o
-
+     h←counter input_forward X[;counter]
      counter←counter+1
  :EndWhile
+
+ LAYERNUM←OUTPUT
+ ⍝ output layers - forward pass
+ Y←eos,YY
+ counter←1
+ :While counter≤d
+     h←Y[;counter]
+     h←counter output_forward h
+     counter←counter+1
+ :EndWhile
+
+
+ ⍝ output layers - backward pass
+ Y←⌽(YY,eos)
+ counter←d
+ :While counter≥1
+     delta←Y[;counter]
+     delta←counter output_backward delta
+     counter←counter-1
+ :EndWhile
+
+ LAYERNUM←INPUT
+ X←⌽(XX)
+ counter←d
+ :While counter≥1
+     delta←(1,esz)⍴0
+     delta←counter input_backward delta
+     counter←counter-1
+ :EndWhile
+
+ ⍝ gradient clipping
+ ⍝ LAYERNUM←INPUT
+ ⍝ dExdH←((⍴ht))⍴((1000?1000)÷1000000) ⍝ random numbers for err derivative, for now
+
+ ⍝ counter←d
