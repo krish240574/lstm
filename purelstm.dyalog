@@ -41,71 +41,74 @@
 
 
  ⍝ :While oloop≤10
-     counter←1 ⍝ time counter
-     xt←((n),1)⍴((1000?1000)÷1000000)
-     :While counter≤numInputUnits
+ counter←1 ⍝ time counter
+ xt←((n),1)⍴((1000?1000)÷1000000)
+ :While counter≤numInputUnits
          ⍝ node t gets xt, t+1 gets xt+1...
 
-         :If counter=1
-             cprev←c0
-             hprev←h0
-         :Else
-             cprev[;counter]←ct[;counter-1]
-             hprev[;counter]←ht[;counter-1]
-         :EndIf
-         x←(1 1)⍴xt[counter;]
+     :If counter=1
+         cprev←c0
+         hprev←h0
+     :Else
+         cprev[;counter]←ct[;counter-1]
+         hprev[;counter]←ht[;counter-1]
+     :EndIf
+     x←(1 1)⍴xt[counter;]
          ⍝ LSTM - Forward pass
-         athat[;counter]←+⌿((⍉Wc)+.×x)+(Uc+.×⍉hprev)
-         at[;counter]←7○athat[;counter]
+     athat[;counter]←+⌿((⍉Wc)+.×x)+(Uc+.×⍉hprev)
+     at[;counter]←7○athat[;counter]
 
-         ithat←+⌿((⍉Wi)+.×x)+(Ui+.×⍉hprev)
-         it[;counter]←1÷(1+*(¯1×ithat))
+     ithat←+⌿((⍉Wi)+.×x)+(Ui+.×⍉hprev)
+     it[;counter]←1÷(1+*(¯1×ithat))
 
-         fthat←+⌿((⍉Wf)+.×x)+(Uf+.×⍉hprev)
-         ft[;counter]←1÷(1+*(¯1×fthat))
+     fthat←+⌿((⍉Wf)+.×x)+(Uf+.×⍉hprev)
+     ft[;counter]←1÷(1+*(¯1×fthat))
 
-         othat←+⌿((⍉Wo)+.×x)+(Uo+.×⍉hprev)
-         ot[;counter]←1÷(1+*(¯1×othat))
+     othat←+⌿((⍉Wo)+.×x)+(Uo+.×⍉hprev)
+     ot[;counter]←1÷(1+*(¯1×othat))
 
-         tmp←(it×at)+(ft×cprev)
-         ct[;counter]←tmp[;counter]
-         cprev[;counter]←ct[;counter]
+     tmp←(it×at)+(ft×cprev)
+     ct[;counter]←tmp[;counter]
+     cprev[;counter]←ct[;counter]
 
-         ht[;counter]←(ot[;counter])×(7○ct[;counter])
-         hprev[;counter]←ht[;counter]
+     ht[;counter]←(ot[;counter])×(7○ct[;counter])
+     hprev[;counter]←ht[;counter]
 
-         counter←counter+1
-     :EndWhile
+     counter←counter+1
+ :EndWhile
 
  ⍝   backward pass  - LSTM
-     dExdct←(1,d)⍴0
-     dExdot←(1,d)⍴0
-     dExdit←(1,d)⍴0
-     dExdft←(1,d)⍴0
-     dExdat←(1,d)⍴0
-     dExdct←(1,d)⍴0
-     dzt←(1,d)⍴0
-     I←(1,d)⍴0
-     dExdWt←(1,d)⍴0
-     dExdH←((⍴ht))⍴((1000?1000)÷1000000) ⍝ random numbers for err derivative, for now
+ dExdct←(1,d)⍴0
+ dExdot←(1,d)⍴0
+ dExdit←(1,d)⍴0
+ dExdft←(1,d)⍴0
+ dExdat←(1,d)⍴0
+ dExdct←(1,d)⍴0
+ dzt←(1,d)⍴0
+ I←(1,d)⍴0
+ dExdWt←(1,d)⍴0
+ dExdH←((⍴ht))⍴((1000?1000)÷1000000) ⍝ random numbers for err derivative, for now
 
-     counter←numInputUnits
-     dExdot←dExdH×(7○ct)
-     dExdct←dExdct+dExdH×ot×(1-7○ct)
-     dExdit←dExdct×at
-     tmp←c0[;1],ct[;⍳(¯1+(¯1↑⍴ct))]
-     dExdft←dExdct×tmp
-     dExdat←dExdct×it
-     dExdcprev←dExdct×ft
+ counter←numInputUnits
+ dExdot←dExdH×(7○ct)
+ dExdct←dExdct+dExdH×ot×(1-7○ct)
+ dExdit←dExdct×at
+ tmp←c0[;1],ct[;⍳(¯1+(¯1↑⍴ct))]
+ dExdft←dExdct×tmp
+ dExdat←dExdct×it
+ dExdcprev←dExdct×ft
 
-     dExdahat←dExdat×(1-(7○athat)*2)
-     dExdihat←dExdit×it×(1-it)
-     dExdfhat←dExdft×ft×(1-ft)
-     dExdohat←dExdot×ot×(1-ot)
-     dzt←⊂(1,d)⍴(dExdahat dExdihat dExdfhat dExdohat)
-     tmp←h0[;1],ht[;⍳(¯1+(¯1↑⍴ct))]
-     I←⊂(2 1)⍴((x)(tmp))
-     dExdWt←⊂(⍉↑dzt)+.×⍉↑I
+ dExdahat←dExdat×(1-(7○athat)*2)
+ dExdihat←dExdit×it×(1-it)
+ dExdfhat←dExdft×ft×(1-ft)
+ dExdohat←dExdot×ot×(1-ot)
+ dzt←⊂(1,d)⍴(dExdahat dExdihat dExdfhat dExdohat)
+ tmp←h0[;1],ht[;⍳(¯1+(¯1↑⍴ct))]
+ I←⊂(2 1)⍴((x)(tmp))
+ dExdWt←⊂(⍉↑dzt)+.×⍉↑I   ⍝ dUs and dWs, update
+
+ (Wc+.×kdzt)+(Wi+.×kdzt)+(Wf+.×kdzt)+(Wo+.×kdzt)
+ kdzt←(3 3)⍴,⊃↑dzt                  ⍝ ht-1 update
      ⍝:While counter≥1
 ⍝         dExdot[;counter]←dExdH[;counter]×(7○ct[;counter])
 ⍝
@@ -136,6 +139,6 @@
 ⍝         counter←counter-1
 ⍝     :EndWhile
 
-     sumW←sumW+dExdWt
+ sumW←sumW+dExdWt
 ⍝     oloop←oloop+1
 ⍝ :EndWhile
