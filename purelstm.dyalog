@@ -40,7 +40,7 @@
  ⍝ Forward pass
 
 
- :While oloop≤10
+ ⍝ :While oloop≤10
      counter←1 ⍝ time counter
      xt←((n),1)⍴((1000?1000)÷1000000)
      :While counter≤numInputUnits
@@ -93,7 +93,7 @@
      dExdot←dExdH×(7○ct)
      dExdct←dExdct+dExdH×ot×(1-7○ct)
      dExdit←dExdct×at
-     tmp←c0[;1],ct[;(1+⍳(¯1+(¯1↑⍴ct)))]
+     tmp←c0[;1],ct[;⍳(¯1+(¯1↑⍴ct))]
      dExdft←dExdct×tmp
      dExdat←dExdct×it
      dExdcprev←dExdct×ft
@@ -103,7 +103,7 @@
      dExdfhat←dExdft×ft×(1-ft)
      dExdohat←dExdot×ot×(1-ot)
      dzt←⊂(1,d)⍴(dExdahat dExdihat dExdfhat dExdohat)
-     tmp←h0[;1],ht[;(1+⍳(¯1+(¯1↑⍴ct)))]
+     tmp←h0[;1],ht[;⍳(¯1+(¯1↑⍴ct))]
      I←⊂(2 1)⍴((x)(tmp))
      dExdWt←⊂(⍉↑dzt)+.×⍉↑I
      ⍝:While counter≥1
@@ -137,5 +137,5 @@
 ⍝     :EndWhile
 
      sumW←sumW+dExdWt
-     oloop←oloop+1
- :EndWhile
+⍝     oloop←oloop+1
+⍝ :EndWhile
