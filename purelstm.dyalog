@@ -4,7 +4,7 @@
 
  n←10
  ⍝ number of memory cells/hidden units
- d←10
+ d←3
 
  ⍝ +1 for bias
  xt←((n),1)⍴((1000?1000)÷1000000)
@@ -90,34 +90,51 @@
      dExdH←((⍴ht))⍴((1000?1000)÷1000000) ⍝ random numbers for err derivative, for now
 
      counter←numInputUnits
-     :While counter≥1
-         dExdot[;counter]←dExdH[;counter]×(7○ct[;counter])
+     dExdot←dExdH×(7○ct)
+     dExdct←dExdct+dExdH×ot×(1-7○ct)
+     dExdit←dExdct×at
+     tmp←c0[;1],ct[;(1+⍳(¯1+(¯1↑⍴ct)))]
+     dExdft←dExdct×tmp
+     dExdat←dExdct×it
+     dExdcprev←dExdct×ft
 
-         dExdct[;counter]←dExdct[;counter]+dExdH[;counter]×ot[;counter]×(1-(7○ct[;counter])*2)
-
-         dExdit[;counter]←dExdct[;counter]×at[;counter]
-         :If counter>1
-             dExdft[;counter]←dExdct[;counter]×ct[;counter-1]
-         :Else
-             dExdft[;counter]←dExdct[;counter]×c0[;counter]
-         :EndIf
-         dExdat[;counter]←dExdct[;counter]×it[;counter]
-         dExdcprev←dExdct[;counter]×ft[;counter]
-
-         dExdahat←dExdat[;counter]×(1-(7○athat[;counter])*2)
-         dExdihat←dExdit[;counter]×it[;counter]×(1-it[;counter])
-         dExdfhat←dExdft[;counter]×ft[;counter]×(1-ft[;counter])
-         dExdohat←dExdot[;counter]×ot[;counter]×(1-ot[;counter])
-         dzt[;counter]←⊂(1,d)⍴(dExdahat dExdihat dExdfhat dExdohat)
-
-         :If counter>1
-             I[;counter]←⊂(2 1)⍴((xt[counter;])(ht[;counter-1]))
-         :Else
-             I[;counter]←⊂(2 1)⍴((xt[counter;])(h0[;counter]))
-         :EndIf
-         dExdWt[;counter]←⊂(⍉↑dzt[;counter])+.×⍉↑I[;counter]
-         counter←counter-1
-     :EndWhile
+     dExdahat←dExdat×(1-(7○athat)*2)
+     dExdihat←dExdit×it×(1-it)
+     dExdfhat←dExdft×ft×(1-ft)
+     dExdohat←dExdot×ot×(1-ot)
+     dzt←⊂(1,d)⍴(dExdahat dExdihat dExdfhat dExdohat)
+     tmp←h0[;1],ht[;(1+⍳(¯1+(¯1↑⍴ct)))]
+     I←⊂(2 1)⍴((x)(tmp))
+     dExdWt←⊂(⍉↑dzt)+.×⍉↑I
+     ⍝:While counter≥1
+⍝         dExdot[;counter]←dExdH[;counter]×(7○ct[;counter])
+⍝
+⍝         dExdct[;counter]←dExdct[;counter]+dExdH[;counter]×ot[;counter]×(1-(7○ct[;counter])*2)
+⍝
+⍝         dExdit[;counter]←dExdct[;counter]×at[;counter]
+⍝         :If counter>1
+⍝             dExdft[;counter]←dExdct[;counter]×ct[;counter-1]
+⍝         :Else
+⍝             dExdft[;counter]←dExdct[;counter]×c0[;counter]
+⍝         :EndIf
+⍝         dExdat[;counter]←dExdct[;counter]×it[;counter]
+⍝         dExdcprev←dExdct[;counter]×ft[;counter]
+⍝
+⍝         ⍝ sigmoid derivatives
+⍝         dExdahat←dExdat[;counter]×(1-(7○athat[;counter])*2)
+⍝         dExdihat←dExdit[;counter]×it[;counter]×(1-it[;counter])
+⍝         dExdfhat←dExdft[;counter]×ft[;counter]×(1-ft[;counter])
+⍝         dExdohat←dExdot[;counter]×ot[;counter]×(1-ot[;counter])
+⍝         dzt[;counter]←⊂(1,d)⍴(dExdahat dExdihat dExdfhat dExdohat)
+⍝
+⍝         :If counter>1
+⍝             I[;counter]←⊂(2 1)⍴((xt[counter;])(ht[;counter-1]))
+⍝         :Else
+⍝             I[;counter]←⊂(2 1)⍴((xt[counter;])(h0[;counter]))
+⍝         :EndIf
+⍝         dExdWt[;counter]←⊂(⍉↑dzt[;counter])+.×⍉↑I[;counter]
+⍝         counter←counter-1
+⍝     :EndWhile
 
      sumW←sumW+dExdWt
      oloop←oloop+1
