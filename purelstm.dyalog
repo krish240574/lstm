@@ -107,60 +107,43 @@
  I←(2 1)⍴(xt tmp)
 ⍝ dExdWt←I+.×⍉dzt ⍝ 1st row delta Ws, 2nd delta Us
 
- ⍝ delta Ws
+ ⍝ delta Ws - (x to a, i, f, o)
  deltaWa←xt+.×dExdahat
+ Wa←Wa+deltaWa
  deltaWi←xt+.×dExdihat
+ Wi←Wi+deltaWi
  deltaWf←xt+.×dExdfhat
+ Wf←Wf+deltaWf
  deltaWo←xt+.×dExdohat
- ⍝ delta Us
- deltaUa←tmp+.×⍉dExdahat
- deltaUi←tmp+.×⍉dExdihat
- deltaUf←tmp+.×⍉dExdfhat
- deltaUo←tmp+.×⍉dExdohat
+ Wo←Wo+deltaWo
+ ⍝ delta Us - (h to a, i, f, o)
+ deltaUa←+⌿(d,d,d)⍴,tmp∘.×⍉dExdahat
+ Ua←Ua+deltaUa
+ deltaUi←+⌿(d,d,d)⍴tmp∘.×⍉dExdihat
+ Ua←Ui+deltaUi
+ deltaUf←+⌿(d,d,d)⍴tmp∘.×⍉dExdfhat
+ Uf←Uf+deltaUf
+ deltaUo←+⌿(d,d,d)⍴tmp∘.×⍉dExdohat
+ Uo←Uo+deltaUo
 
+ ⍝ Now to do the same for hprev
+ ⍝ta←Wa+.×dExdahat
+⍝ ti←Wi+.×dExdihat
+⍝ tf←Wf+.×dExdfhat
+⍝ to←Wo+.×dExdohat
 
+ hprevtoa←+⌿(d,d,d)⍴Ua∘.×⍉dExdahat
+ hprevtoi←+⌿(d,d,d)⍴Ui∘.×⍉dExdihat
+ hprevtof←+/(d,d,d)⍴Uf∘.×⍉dExdfhat
+ hprevtoo←+⌿(d,d,d)⍴Uo∘.×⍉dExdohat
 
- ⍝⍝ dExdWt←⊂(⍉↑dzt)+.×⍉↑I   ⍝ dUs and dWs, update
-⍝ ⍝ Wvec←(1,4)⍴((Wa)(Wi)(Wf)(Wo))
-⍝ Wvec←(1 4)⍴(Wa Wi Wf Wo)
-⍝ kdzt←(3 3)⍴,⊃dzt
-⍝ (Wa+.×kdzt)+(Wi+.×kdzt)+(Wf+.×kdzt)+(Wo+.×kdzt)
-
-
-
- Watmp←(2 1)⍴(Wa Ua)
- Witmp←(2 1)⍴(Wi Ui)
- Wftmp←(2 1)⍴(Wf Uf)
- Wotmp←(2 1)⍴(Wo Uo)
-
- ⍝ dIt←(⍉W)+.×deXdahat
- ta←Watmp+.×dExdahat
- ti←Witmp+.×dExdihat
- tf←Wftmp+.×dExdfhat
- to←Wotmp+.×dExdohat
- ⍝ hprev to as, is, fs and os of all nodes
- ⍝hprevtoa←+/⊃ta[2;]
-⍝ hprevtoi←+/⊃ti[2;]
-⍝ hprevtof←+/⊃tf[2;]
-⍝ hprevtoo←+/⊃to[2;]
-⍝
- hprevtoa←Ua+.×⍉dExdahat
- hprevtoi←Ui+.×⍉dExdihat
- hprevtof←Uf+.×⍉dExdfhat
- hprevtoo←Uo+.×⍉dExdohat
  dhprev←hprevtoa+hprevtof+hprevtoi+hprevtoo
-
- ⍝deltaWs←(d 1)⍴dExdWt[1;]
- ⍝deltaUs←(d 1)⍴dExdWt[2;]
-
-
-
-
-
-
-
-
-     ⍝ t←numInputUnits
+ hprev←hprev+dhprev  
+ 
+ 
+ 
+ 
+ ⍝ t←numInputUnits
      ⍝:While t≥1
 ⍝         dExdot[;t]←dExdH[;t]×(7○ct[;t])
 ⍝
@@ -190,7 +173,3 @@
 ⍝         dExdWt[;t]←⊂(⍉↑dzt[;t])+.×⍉↑I[;t]
 ⍝         t←t-1
 ⍝     :EndWhile
-
- sumW←sumW+dExdWt
-⍝     oloop←oloop+1
-⍝ :EndWhile
