@@ -11,28 +11,28 @@
  W←((4×d),(n+d))⍴((1000?1000)÷1000000)
 
  ⍝ per cell Ws and Us
- Wa←(n,d)⍴((1000?1000)÷1000000)
- Wi←(n,d)⍴((1000?1000)÷1000000)
- Wf←(n,d)⍴((1000?1000)÷1000000)
- Wo←(n,d)⍴((1000?1000)÷1000000)
+ Wa←(n,d)⍴((1000?1000)÷1000000) ⍝ weights from input to at
+ Wi←(n,d)⍴((1000?1000)÷1000000) ⍝ weights from input to it
+ Wf←(n,d)⍴((1000?1000)÷1000000) ⍝ weights from input to ft
+ Wo←(n,d)⍴((1000?1000)÷1000000) ⍝ weights from input to ot
 
- Ua←(d,d)⍴((1000?1000)÷1000000)
- Ui←(d,d)⍴((1000?1000)÷1000000)
- Uf←(d,d)⍴((1000?1000)÷1000000)
- Uo←(d,d)⍴((1000?1000)÷1000000)
+ Ua←(d,d)⍴((1000?1000)÷1000000) ⍝ weights from ht-1 to at
+ Ui←(d,d)⍴((1000?1000)÷1000000) ⍝ weights from ht-1 to it
+ Uf←(d,d)⍴((1000?1000)÷1000000) ⍝ weights from ht-1 to ft
+ Uo←(d,d)⍴((1000?1000)÷1000000) ⍝ weights from ht-1 to ot
 
- h0←(1,d)⍴((1000?1000)÷1000000)
+ h0←(d,d)⍴((1000?1000)÷1000000)
  c0←(1,d)⍴((1000?1000)÷1000000)
 
- at←(1,d)⍴0
+ at←(1,d)⍴0 ⍝ 1 at per node
  athat←(1,d)⍴0
- it←(1,d)⍴0
+ it←(1,d)⍴0 ⍝ 1 it per node
  ft←(1,d)⍴0
- ot←(1,d)⍴0
- ct←(1,d)⍴0
- ht←(1,d)⍴0
- cprev←(1,d)⍴0
- hprev←(1,d)⍴0
+ ot←(1,d)⍴0 ⍝ 1 it per node
+ ct←(1,d)⍴0 ⍝ 1 it per node
+ ht←(d,d)⍴0
+ cprev←(d,d)⍴0
+ hprev←(d,d)⍴0
  numInputUnits←d
  oloop←1
  sumW←0
@@ -46,30 +46,32 @@
      x←(1 1)⍴xt[t;]
      :If t=1
          cprev←c0
-         hprev←h0
+         hprev[t;]←h0[t;]
      :Else
          cprev[;t]←ct[;t-1]
-         hprev[;t]←ht[;t-1]
+         hprev[t;]←ht[t-1;]
+         ⍝cprev[;t]←ct[;t-1]
+         ⍝hprev[;t]←ht[;t-1]
      :EndIf
 
-     athat[;t]←+⌿((⍉Wa)+.×x)+(Ua+.×⍉hprev)
+     athat[;t]←(+⌿(Wa+.×x))+(+⌿(Ua+.×⍉hprev[t;]))
      at[;t]←7○athat[;t]
 
-     ithat←+⌿((⍉Wi)+.×x)+(Ui+.×⍉hprev)
+     ithat←(+⌿(Wi+.×x))+(+⌿(Ui+.×⍉hprev[t;]))
      it[;t]←1÷(1+*(¯1×ithat))
 
-     fthat←+⌿((⍉Wf)+.×x)+(Uf+.×⍉hprev)
+     fthat←(+⌿(Wf+.×x))+(+⌿(Uf+.×⍉hprev[t;]))
      ft[;t]←1÷(1+*(¯1×fthat))
 
-     othat←+⌿((⍉Wo)+.×x)+(Uo+.×⍉hprev)
+     othat←(+⌿(Wo+.×x))+(+/(Uo+.×⍉hprev[t;]))
      ot[;t]←1÷(1+*(¯1×othat))
 
-     tmp←(it×at)+(ft×cprev)
+     tmp←(it×at)+(ft×cprev[;t])
      ct[;t]←tmp[;t]
+     ⍝ct[;t]←(1 3)⍴tmp
 
-
-     ht[;t]←(ot[;t])×(7○ct[;t])
-
+     ⍝ht[t;]←(ot[;t])×(7○ct[;t])
+     ht[t;]←ot×7○ct[;t]
 
      t←t+1
  :EndWhile
@@ -84,7 +86,7 @@
  dzt←(1,d)⍴0
  I←(1,d)⍴0
  dExdWt←(1,d)⍴0
- dExdH←((⍴ht))⍴((1000?1000)÷1000000) ⍝ random numbers for err derivative, for now
+ dExdH←(1,d)⍴((1000?1000)÷1000000) ⍝ random numbers for err derivative, for now
 
 
  dExdot←dExdH×(7○ct)
@@ -101,9 +103,22 @@
  dExdohat←dExdot×ot×(1-ot)
  ⍝dzt←⊂(1,d)⍴(dExdahat dExdihat dExdfhat dExdohat)
  dzt←(4 1)⍴(dExdahat dExdihat dExdfhat dExdohat)
- tmp←h0[;1],ht[;⍳(¯1+(¯1↑⍴ct))]
- I←(2 1)⍴(x tmp)
- dExdWt←I+.×⍉dzt ⍝ 1st row delta Ws, 2nd delta Us
+ tmp←h0[;1],ht[;⍳(¯1+(¯1↑⍴ht))]
+ I←(2 1)⍴(xt tmp)
+⍝ dExdWt←I+.×⍉dzt ⍝ 1st row delta Ws, 2nd delta Us
+
+ ⍝ delta Ws
+ deltaWa←xt+.×dExdahat
+ deltaWi←xt+.×dExdihat
+ deltaWf←xt+.×dExdfhat
+ deltaWo←xt+.×dExdohat
+ ⍝ delta Us
+ deltaUa←tmp+.×⍉dExdahat
+ deltaUi←tmp+.×⍉dExdihat
+ deltaUf←tmp+.×⍉dExdfhat
+ deltaUo←tmp+.×⍉dExdohat
+
+
 
  ⍝⍝ dExdWt←⊂(⍉↑dzt)+.×⍉↑I   ⍝ dUs and dWs, update
 ⍝ ⍝ Wvec←(1,4)⍴((Wa)(Wi)(Wf)(Wo))
@@ -135,8 +150,8 @@
  hprevtoo←Uo+.×⍉dExdohat
  dhprev←hprevtoa+hprevtof+hprevtoi+hprevtoo
 
- deltaWs←(d 1)⍴dExdWt[1;]
- deltaUs←(d 1)⍴dExdWt[2;]
+ ⍝deltaWs←(d 1)⍴dExdWt[1;]
+ ⍝deltaUs←(d 1)⍴dExdWt[2;]
 
 
 
