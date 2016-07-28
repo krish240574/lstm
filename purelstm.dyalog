@@ -11,12 +11,12 @@
  W←((4×d),(n+d))⍴((1000?1000)÷1000000)
 
  ⍝ per cell Ws and Us
- Wc←(n,d)⍴((1000?1000)÷1000000)
+ Wa←(n,d)⍴((1000?1000)÷1000000)
  Wi←(n,d)⍴((1000?1000)÷1000000)
  Wf←(n,d)⍴((1000?1000)÷1000000)
  Wo←(n,d)⍴((1000?1000)÷1000000)
 
- Uc←(d,d)⍴((1000?1000)÷1000000)
+ Ua←(d,d)⍴((1000?1000)÷1000000)
  Ui←(d,d)⍴((1000?1000)÷1000000)
  Uf←(d,d)⍴((1000?1000)÷1000000)
  Uo←(d,d)⍴((1000?1000)÷1000000)
@@ -36,45 +36,42 @@
  numInputUnits←d
  oloop←1
  sumW←0
- ⍝ toy example
+
  ⍝ Forward pass
-
-
  ⍝ :While oloop≤10
- counter←1 ⍝ time counter
+ t←1 ⍝ time t
  xt←((n),1)⍴((1000?1000)÷1000000)
- :While counter≤numInputUnits
-         ⍝ node t gets xt, t+1 gets xt+1...
-
-     :If counter=1
+ :While t≤numInputUnits
+      ⍝ node t gets xt, t+1 gets xt+1...
+     x←(1 1)⍴xt[t;]
+     :If t=1
          cprev←c0
          hprev←h0
      :Else
-         cprev[;counter]←ct[;counter-1]
-         hprev[;counter]←ht[;counter-1]
+         cprev[;t]←ct[;t-1]
+         hprev[;t]←ht[;t-1]
      :EndIf
-     x←(1 1)⍴xt[counter;]
-         ⍝ LSTM - Forward pass
-     athat[;counter]←+⌿((⍉Wc)+.×x)+(Uc+.×⍉hprev)
-     at[;counter]←7○athat[;counter]
+
+     athat[;t]←+⌿((⍉Wa)+.×x)+(Ua+.×⍉hprev)
+     at[;t]←7○athat[;t]
 
      ithat←+⌿((⍉Wi)+.×x)+(Ui+.×⍉hprev)
-     it[;counter]←1÷(1+*(¯1×ithat))
+     it[;t]←1÷(1+*(¯1×ithat))
 
      fthat←+⌿((⍉Wf)+.×x)+(Uf+.×⍉hprev)
-     ft[;counter]←1÷(1+*(¯1×fthat))
+     ft[;t]←1÷(1+*(¯1×fthat))
 
      othat←+⌿((⍉Wo)+.×x)+(Uo+.×⍉hprev)
-     ot[;counter]←1÷(1+*(¯1×othat))
+     ot[;t]←1÷(1+*(¯1×othat))
 
      tmp←(it×at)+(ft×cprev)
-     ct[;counter]←tmp[;counter]
-     cprev[;counter]←ct[;counter]
+     ct[;t]←tmp[;t]
 
-     ht[;counter]←(ot[;counter])×(7○ct[;counter])
-     hprev[;counter]←ht[;counter]
 
-     counter←counter+1
+     ht[;t]←(ot[;t])×(7○ct[;t])
+
+
+     t←t+1
  :EndWhile
 
  ⍝   backward pass  - LSTM
@@ -89,7 +86,7 @@
  dExdWt←(1,d)⍴0
  dExdH←((⍴ht))⍴((1000?1000)÷1000000) ⍝ random numbers for err derivative, for now
 
- counter←numInputUnits
+
  dExdot←dExdH×(7○ct)
  dExdct←dExdct+dExdH×ot×(1-7○ct)
  dExdit←dExdct×at
@@ -102,41 +99,81 @@
  dExdihat←dExdit×it×(1-it)
  dExdfhat←dExdft×ft×(1-ft)
  dExdohat←dExdot×ot×(1-ot)
- dzt←⊂(1,d)⍴(dExdahat dExdihat dExdfhat dExdohat)
+ ⍝dzt←⊂(1,d)⍴(dExdahat dExdihat dExdfhat dExdohat)
+ dzt←(4 1)⍴(dExdahat dExdihat dExdfhat dExdohat)
  tmp←h0[;1],ht[;⍳(¯1+(¯1↑⍴ct))]
- I←⊂(2 1)⍴((x)(tmp))
- dExdWt←⊂(⍉↑dzt)+.×⍉↑I   ⍝ dUs and dWs, update
+ I←(2 1)⍴(x tmp)
+ dExdWt←I+.×⍉dzt ⍝ 1st row delta Ws, 2nd delta Us
 
- (Wc+.×kdzt)+(Wi+.×kdzt)+(Wf+.×kdzt)+(Wo+.×kdzt)
- kdzt←(3 3)⍴,⊃↑dzt                  ⍝ ht-1 update
-     ⍝:While counter≥1
-⍝         dExdot[;counter]←dExdH[;counter]×(7○ct[;counter])
+ ⍝⍝ dExdWt←⊂(⍉↑dzt)+.×⍉↑I   ⍝ dUs and dWs, update
+⍝ ⍝ Wvec←(1,4)⍴((Wa)(Wi)(Wf)(Wo))
+⍝ Wvec←(1 4)⍴(Wa Wi Wf Wo)
+⍝ kdzt←(3 3)⍴,⊃dzt
+⍝ (Wa+.×kdzt)+(Wi+.×kdzt)+(Wf+.×kdzt)+(Wo+.×kdzt)
+
+
+
+ Watmp←(2 1)⍴(Wa Ua)
+ Witmp←(2 1)⍴(Wi Ui)
+ Wftmp←(2 1)⍴(Wf Uf)
+ Wotmp←(2 1)⍴(Wo Uo)
+
+ ⍝ dIt←(⍉W)+.×deXdahat
+ ta←Watmp+.×dExdahat
+ ti←Witmp+.×dExdihat
+ tf←Wftmp+.×dExdfhat
+ to←Wotmp+.×dExdohat
+ ⍝ hprev to as, is, fs and os of all nodes
+ ⍝hprevtoa←+/⊃ta[2;]
+⍝ hprevtoi←+/⊃ti[2;]
+⍝ hprevtof←+/⊃tf[2;]
+⍝ hprevtoo←+/⊃to[2;]
 ⍝
-⍝         dExdct[;counter]←dExdct[;counter]+dExdH[;counter]×ot[;counter]×(1-(7○ct[;counter])*2)
+ hprevtoa←Ua+.×⍉dExdahat
+ hprevtoi←Ui+.×⍉dExdihat
+ hprevtof←Uf+.×⍉dExdfhat
+ hprevtoo←Uo+.×⍉dExdohat
+ dhprev←hprevtoa+hprevtof+hprevtoi+hprevtoo
+
+ deltaWs←(d 1)⍴dExdWt[1;]
+ deltaUs←(d 1)⍴dExdWt[2;]
+
+
+
+
+
+
+
+
+     ⍝ t←numInputUnits
+     ⍝:While t≥1
+⍝         dExdot[;t]←dExdH[;t]×(7○ct[;t])
 ⍝
-⍝         dExdit[;counter]←dExdct[;counter]×at[;counter]
-⍝         :If counter>1
-⍝             dExdft[;counter]←dExdct[;counter]×ct[;counter-1]
+⍝         dExdct[;t]←dExdct[;t]+dExdH[;t]×ot[;t]×(1-(7○ct[;t])*2)
+⍝
+⍝         dExdit[;t]←dExdct[;t]×at[;t]
+⍝         :If t>1
+⍝             dExdft[;t]←dExdct[;t]×ct[;t-1]
 ⍝         :Else
-⍝             dExdft[;counter]←dExdct[;counter]×c0[;counter]
+⍝             dExdft[;t]←dExdct[;t]×c0[;t]
 ⍝         :EndIf
-⍝         dExdat[;counter]←dExdct[;counter]×it[;counter]
-⍝         dExdcprev←dExdct[;counter]×ft[;counter]
+⍝         dExdat[;t]←dExdct[;t]×it[;t]
+⍝         dExdcprev←dExdct[;t]×ft[;t]
 ⍝
 ⍝         ⍝ sigmoid derivatives
-⍝         dExdahat←dExdat[;counter]×(1-(7○athat[;counter])*2)
-⍝         dExdihat←dExdit[;counter]×it[;counter]×(1-it[;counter])
-⍝         dExdfhat←dExdft[;counter]×ft[;counter]×(1-ft[;counter])
-⍝         dExdohat←dExdot[;counter]×ot[;counter]×(1-ot[;counter])
-⍝         dzt[;counter]←⊂(1,d)⍴(dExdahat dExdihat dExdfhat dExdohat)
+⍝         dExdahat←dExdat[;t]×(1-(7○athat[;t])*2)
+⍝         dExdihat←dExdit[;t]×it[;t]×(1-it[;t])
+⍝         dExdfhat←dExdft[;t]×ft[;t]×(1-ft[;t])
+⍝         dExdohat←dExdot[;t]×ot[;t]×(1-ot[;t])
+⍝         dzt[;t]←⊂(1,d)⍴(dExdahat dExdihat dExdfhat dExdohat)
 ⍝
-⍝         :If counter>1
-⍝             I[;counter]←⊂(2 1)⍴((xt[counter;])(ht[;counter-1]))
+⍝         :If t>1
+⍝             I[;t]←⊂(2 1)⍴((xt[t;])(ht[;t-1]))
 ⍝         :Else
-⍝             I[;counter]←⊂(2 1)⍴((xt[counter;])(h0[;counter]))
+⍝             I[;t]←⊂(2 1)⍴((xt[t;])(h0[;t]))
 ⍝         :EndIf
-⍝         dExdWt[;counter]←⊂(⍉↑dzt[;counter])+.×⍉↑I[;counter]
-⍝         counter←counter-1
+⍝         dExdWt[;t]←⊂(⍉↑dzt[;t])+.×⍉↑I[;t]
+⍝         t←t-1
 ⍝     :EndWhile
 
  sumW←sumW+dExdWt
