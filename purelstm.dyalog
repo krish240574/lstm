@@ -83,15 +83,24 @@
  dExdft←(1,d)⍴0
  dExdat←(1,d)⍴0
  dExdct←(1,d)⍴0
+ dExdahat←(1,d)⍴0
+ dExdihat←(1,d)⍴0
+ dExdfhat←(1,d)⍴0
+ dExdohat←(1,d)⍴0
+
  dzt←(1,d)⍴0
  I←(1,d)⍴0
  dExdWt←(1,d)⍴0
  dExdH←(1,d)⍴((1000?1000)÷1000000) ⍝ random numbers for err derivative, for now
 
-
+ ⍝ vectorizing all multiplications here
  dExdot←dExdH×(7○ct)
  dExdct←dExdct+dExdH×ot×(1-7○ct)
  dExdit←dExdct×at
+ ⍝ dE/dC1 dE/dC2 dE/dC3 dE/dC4 ....
+ ⍝ ×      ×      ×      ×
+ ⍝ c0     ct1    ct2   ct3     ....
+ ⍝(dE/dCt)×(ct-1) , if t=1, then (dE/dCt)×c0
  tmp←c0[;1],ct[;⍳(¯1+(¯1↑⍴ct))]
  dExdft←dExdct×tmp
  dExdat←dExdct×it
@@ -101,12 +110,17 @@
  dExdihat←dExdit×it×(1-it)
  dExdfhat←dExdft×ft×(1-ft)
  dExdohat←dExdot×ot×(1-ot)
- ⍝dzt←⊂(1,d)⍴(dExdahat dExdihat dExdfhat dExdohat)
- dzt←(4 1)⍴(dExdahat dExdihat dExdfhat dExdohat)
- tmp←h0[;1],ht[;⍳(¯1+(¯1↑⍴ht))]
- I←(2 1)⍴(xt tmp)
-⍝ dExdWt←I+.×⍉dzt ⍝ 1st row delta Ws, 2nd delta Us
+ ⍝ this block combines all arrays and multiplies in one fell swoop
+ ⍝ stylish, but difficult to interpret, so I've taken
+ ⍝ the simpler approach
 
+ ⍝ dzt←⊂(1,d)⍴(dExdahat dExdihat dExdfhat dExdohat)
+ ⍝ dzt←(4 1)⍴(dExdahat dExdihat dExdfhat dExdohat)
+ ⍝ tmp←h0[;1],ht[;⍳(¯1+(¯1↑⍴ht))]
+ ⍝ I←(2 1)⍴(xt tmp)
+ ⍝ ⍝ dExdWt←I+.×⍉dzt ⍝ 1st row delta Ws, 2nd delta Us
+
+ ⍝ Simpler approach, multiply each individual array
  ⍝ delta Ws - (x to a, i, f, o)
  deltaWa←xt+.×dExdahat
  Wa←Wa+deltaWa
@@ -116,7 +130,10 @@
  Wf←Wf+deltaWf
  deltaWo←xt+.×dExdohat
  Wo←Wo+deltaWo
+
  ⍝ delta Us - (h to a, i, f, o)
+ ⍝ outer product here, multiply ht with each derivative - fully connected
+ ⍝ each ht is propogated to each other node, so outer product
  deltaUa←+⌿(d,d,d)⍴,tmp∘.×⍉dExdahat
  Ua←Ua+deltaUa
  deltaUi←+⌿(d,d,d)⍴tmp∘.×⍉dExdihat
@@ -127,10 +144,10 @@
  Uo←Uo+deltaUo
 
  ⍝ Now to do the same for hprev
- ⍝ta←Wa+.×dExdahat
-⍝ ti←Wi+.×dExdihat
-⍝ tf←Wf+.×dExdfhat
-⍝ to←Wo+.×dExdohat
+ ⍝ ta←Wa+.×dExdahat
+ ⍝ ti←Wi+.×dExdihat
+ ⍝ tf←Wf+.×dExdfhat
+ ⍝ to←Wo+.×dExdohat
 
  hprevtoa←+⌿(d,d,d)⍴Ua∘.×⍉dExdahat
  hprevtoi←+⌿(d,d,d)⍴Ui∘.×⍉dExdihat
@@ -138,11 +155,16 @@
  hprevtoo←+⌿(d,d,d)⍴Uo∘.×⍉dExdohat
 
  dhprev←hprevtoa+hprevtof+hprevtoi+hprevtoo
- hprev←hprev+dhprev  
- 
- 
- 
- 
+ hprev←hprev+dhprev
+
+ ⍝ All weights and outputs incremented toward convergence.
+ ⍝ Now onto gradient clipping
+
+
+
+
+
+ ⍝ this code below is vectorized above - I'm leaving it here for reference. 
  ⍝ t←numInputUnits
      ⍝:While t≥1
 ⍝         dExdot[;t]←dExdH[;t]×(7○ct[;t])
