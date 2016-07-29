@@ -1,29 +1,29 @@
- z←counter lstm_forwardpass x
+ z←t lstm_forwardpass x
 
- :If counter=1
+ :If t=1
      cprev[LAYERNUM;;]←c0[LAYERNUM;;]
      hprev[LAYERNUM;;]←h0[LAYERNUM;;]
  :Else
-     cprev[LAYERNUM;;counter]←ct[LAYERNUM;;counter-1]
-     hprev[LAYERNUM;;counter]←ht[LAYERNUM;;counter-1]
+     cprev[LAYERNUM;;t]←ct[LAYERNUM;;t-1]
+     hprev[LAYERNUM;t;]←ht[LAYERNUM;t-1;]
  :EndIf
- athat[LAYERNUM;;counter]←+⌿(Wc[LAYERNUM;;]+.×⍉x)+(Uc[LAYERNUM;;]+.×⍉hprev[LAYERNUM;;])
- at[LAYERNUM;;counter]←7○athat[LAYERNUM;;counter]
+ athat[LAYERNUM;;t]←+⌿(Wc[LAYERNUM;;]+.×⍉x)+(Uc[LAYERNUM;;]+.×⍉hprev[LAYERNUM;t;])
+ at[LAYERNUM;;t]←7○athat[LAYERNUM;;t]
 
  ithat←+⌿(Wi[LAYERNUM;;]+.×⍉x)+(Ui[LAYERNUM;;]+.×⍉hprev[LAYERNUM;;])
- it[LAYERNUM;;counter]←1÷(1+*(¯1×ithat))
+ it[LAYERNUM;;t]←1÷(1+*(¯1×ithat))
 
  fthat←+⌿(Wf[LAYERNUM;;]+.×⍉x)+(Uf[LAYERNUM;;]+.×⍉hprev[LAYERNUM;;])
- ft[LAYERNUM;;counter]←1÷(1+*(¯1×fthat))
+ ft[LAYERNUM;;t]←1÷(1+*(¯1×fthat))
 
  othat←+⌿(Wo[LAYERNUM;;]+.×⍉x)+(Uo[LAYERNUM;;]+.×⍉hprev[LAYERNUM;;])
- ot[LAYERNUM;;counter]←1÷(1+*(¯1×othat))
+ ot[LAYERNUM;;t]←1÷(1+*(¯1×othat))
 
  tmp←(it[LAYERNUM;;]×at[LAYERNUM;;])+(ft[LAYERNUM;;]×cprev[LAYERNUM;;])
  ct[LAYERNUM;;]←tmp
- cprev[LAYERNUM;;counter]←ct[LAYERNUM;;counter]
+ cprev[LAYERNUM;;t]←ct[LAYERNUM;;t]
 
- ht[LAYERNUM;;counter]←(ot[LAYERNUM;;counter])×(7○ct[LAYERNUM;;counter])
- hprev[LAYERNUM;;counter]←ht[LAYERNUM;;counter]
+ ht[LAYERNUM;;t]←(ot[LAYERNUM;;t])×(7○ct[LAYERNUM;;t])
+ hprev[LAYERNUM;;t]←ht[LAYERNUM;;t]
 
- z←ht
+ z←ht[LAYERNUM;;t] ⍝ return output of 1 time step
