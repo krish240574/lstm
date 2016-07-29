@@ -1,12 +1,15 @@
- z←t softmax_forwardpass x
+ z←t softmax_backwardpass delta
 
- ⍝ Softmax layer - forward pass
- sm_y←sm_W+.×x
- tmp←sm_y[⍋sm_y]
- sm_ymax←tmp[⍴sm_y]
- sm_y←*(sm_y-sm_ymax)
- sm_y←sm_y÷(+/sm_y)
- sm_pred[;t]←sm_y
- sm_xt[;t]←we_o
-
- z←sm_y
+ :If t>1
+     sm_d←sm_pred[;t-1]
+ :Else
+     sm_d←sm_pred[;t]
+ :EndIf
+ sm_d[target]←sm_d[target]-1
+ :If t>1
+     sm_dW←sm_d×.∘sm_xt[;t-1] ⍝ outer product
+ :Else
+     sm_dW←sm_d×.∘sm_xt[;t]
+ :EndIf
+ sm_delta←sm_W+.×sm_d
+ z←sm_delta
