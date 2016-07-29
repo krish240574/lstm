@@ -1,8 +1,8 @@
- z←counter emb_backwardpass delta
- :If counter>1
-     x←we_x[LAYERNUM;;counter-1]
+ z←t emb_backwardpass delta
+ :If t>1
+     x←we_x[LAYERNUM;;t-1]
  :Else
-     x←we_x←[LAYERNUM;;counter]
+     x←we_x←[LAYERNUM;;t]
  :EndIf
 
- we_dW[LAYERNUM;;x]←delta
+ we_dW[LAYERNUM;;x]←we_dW[LAYERNUM;;x]+delta
