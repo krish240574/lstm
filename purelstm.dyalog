@@ -1,7 +1,5 @@
  z←lstm_main
- ⍝ http://arunmallya.github.io/writeups/nn/lstm/index.html#/2
  ⍝ size of input vector
-
  n←10
  ⍝ number of memory cells/hidden units
  d←3
