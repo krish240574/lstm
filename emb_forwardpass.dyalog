@@ -1,6 +1,7 @@
- z←counter emb_forwardpass x
+ z←t emb_forwardpass x
 
  ⍝ Word-embedding - forward pass
- we_x[LAYERNUM;;counter]←ht[LAYERNUM;;counter] ⍝ output of LSTM layer
- we_o←we_W[we_x[LAYERNUM;;counter]] ⍝ output of embedding layer
+ ⍝ return weight corresponding to the value sent as embedding
+ we_x[LAYERNUM;;t]←ht[LAYERNUM;;t] ⍝ output of LSTM layer
+ we_o←we_W[we_x[LAYERNUM;;t]] ⍝ output of embedding layer
  z←we_o
