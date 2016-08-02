@@ -1,8 +1,10 @@
  z←lstm_main
+ ⍝ http://arunmallya.github.io/writeups/nn/lstm/index.html#/2
  ⍝ size of input vector
- n←10
+ lr←0.005
+ n←10 ⍝ num of inputs - also embedding size
  ⍝ number of memory cells/hidden units
- d←3
+ d←10
 
  ⍝ +1 for bias
  xt←((n),1)⍴((1000?1000)÷1000000)
@@ -158,11 +160,25 @@
  ⍝ All weights and outputs incremented toward convergence.
  ⍝ Now onto gradient clipping
 
+ ⍝ Add squares of all gradients
+ gradsum←+⌿((deltaWa*2)+(deltaWf*2)+(deltaWi*2)+(deltaWo*2))
+ gradsum←+/(gradsum+(+⌿(deltaUa*2)+(deltaUf*2)+(deltaUi*2)+(deltaUo*2)))
+ gradsum←gradsum*0.5
+
+ clip_grad←5 ⍝ Very high value, if norm is greater than this, then clip
+ :If gradsum>clip_grad
+     (Wa Wf Wi Wo)←(Wa Wf Wi Wo)÷(gradsum÷clip_grad)
+     (Ua Uf Ui Uo)←(Ua Uf Ui Uo)÷(gradsum÷clip_grad)
+ :EndIf
+ (Wa Wf Wi Wo)←(Wa Wf Wi Wo)-lr×(Wa Wf Wi Wo)
+ (Ua Uf Ui Uo)←(Ua Uf Ui Uo)-lr×(Ua Uf Ui Uo)
 
 
 
 
- ⍝ this code below is vectorized above - I'm leaving it here for reference. 
+
+
+
  ⍝ t←numInputUnits
      ⍝:While t≥1
 ⍝         dExdot[;t]←dExdH[;t]×(7○ct[;t])
