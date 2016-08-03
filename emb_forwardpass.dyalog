@@ -2,6 +2,6 @@
 
  ⍝ Word-embedding - forward pass
  ⍝ return weight corresponding to the value sent as embedding
- we_x[LAYERNUM;;t]←ht[LAYERNUM;;t] ⍝ output of LSTM layer
- we_o←we_W[we_x[LAYERNUM;;t]] ⍝ output of embedding layer
+ we_x[LAYERNUM;;t]←x
+ we_o←we_W[LAYERNUM;;x] 
  z←we_o
