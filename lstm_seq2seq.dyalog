@@ -1,27 +1,29 @@
  z←lstm_seq2seq
 
- d←10  ⍝ number of hidden units/memory cells
+ d←10   ⍝ number of hidden units/memory cells
  esz←10 ⍝ size of embedding layer
- n←esz ⍝ size of input sequence
+ n←2    ⍝ size of input sequence
 
  INPUT←1
  OUTPUT←2
  ⍝ Word embedding layer
  we_W←(2,d,esz)⍴((1000?1000)÷1000000) ⍝ we need 2 layers
  we_dW←(⍴we_W)⍴0
- we_x←(2,d)⍴0
+ we_x←(2,1,d)⍴0
 
  ⍝ Softmax layer
- sm_W←(d,d)⍴((1000?1000)÷1000000)
- sm_dW←(d,d)⍴0
- sm_pred←(1,d)⍴0
+ sm_W←(n,d)⍴((1000?1000)÷1000000)
+ sm_dW←(n,d)⍴0
+ sm_pred←'null'
+ sm_xt←'null'
+ sm_target←'null'
 
 
  ⍝ LSTM layers
  W←(2,(4×d),(n+d))⍴((1000?1000)÷1000000)
 
  ⍝ per cell Ws and Us
- Wa←(2,n,d)⍴((1000?1000)÷1000000)
+ Wc←(2,n,d)⍴((1000?1000)÷1000000)
  Wi←(2,n,d)⍴((1000?1000)÷1000000)
  Wf←(2,n,d)⍴((1000?1000)÷1000000)
  Wo←(2,n,d)⍴((1000?1000)÷1000000)
@@ -41,9 +43,9 @@
  ct←(2,1,d)⍴0
  ht←(2,1,d)⍴0
  cprev←(2,1,d)⍴0
- hprev←(2,d,d)⍴0
+ hprev←(2,1,d)⍴0
 
- ⍝   backward pass  - LSTM
+ ⍝   backWcrd pass  - LSTM
  dExdct←(2,1,d)⍴0
  dExdot←(2,1,d)⍴0
  dExdit←(2,1,d)⍴0
@@ -57,16 +59,16 @@
  XX←(1 2)⍴(2 1)
  eos←0
  YY←(1 1)⍴2
- ⍝ Forward pass
- ⍝ Input layers - LSTM+Emb - train with [EOS]+X - forward
+ ⍝ ForWcrd pass
+ ⍝ Input layers - LSTM+Emb - train with [EOS]+X - forWcrd
  ⍝ reset output layers
  ⍝ Output layers - Emb+LSTM+Softmax - train with reversed([EOS]+Y)
 
  LAYERNUM←INPUT
  ⍝ input layers - forward pass
  t←1
- :While t≤d
-     h←t input_forward X[;t]
+ :While t≤n
+     h←t input_forward XX[;t]
      t←t+1
  :EndWhile
 
@@ -74,7 +76,7 @@
  ⍝ output layers - forward pass
  Y←eos,YY
  t←1
- :While t≤d
+ :While t≤n
      h←Y[;t]
      h←t output_forward h
      t←t+1
@@ -83,7 +85,7 @@
 
  ⍝ output layers - backward pass
  Y←⌽(YY,eos)
- t←d
+ t←n
  :While t≥1
      delta←Y[;t]
      delta←t output_backward delta
@@ -92,7 +94,7 @@
 
  LAYERNUM←INPUT
  X←⌽(XX)
- t←d
+ t←n
  :While t≥1
      delta←(1,esz)⍴0
      delta←t input_backward delta
@@ -109,8 +111,8 @@
  grad_norm←(grad_ss)*0.5
 
  :If gradsum>clip_grad
-     (Wa Wf Wi Wo)←(Wa Wf Wi Wo we_W sm_W)÷(gradsum÷clip_grad)
+     (Wc Wf Wi Wo)←(Wc Wf Wi Wo we_W sm_W)÷(gradsum÷clip_grad)
      (Ua Uf Ui Uo)←(Ua Uf Ui Uo)÷(gradsum÷clip_grad)
  :EndIf
- (Wa Wf Wi Wo we_W sm_W)←(Wa Wf Wi Wo we_W sm_W)-lr×(Wa Wf Wi Wo we_W sm_W)
+ (Wc Wf Wi Wo we_W sm_W)←(Wc Wf Wi Wo we_W sm_W)-lr×(Wc Wf Wi Wo we_W sm_W)
  (Ua Uf Ui Uo)←(Ua Uf Ui Uo)-lr×(Ua Uf Ui Uo)
