@@ -10,13 +10,13 @@
  athat[LAYERNUM;;t]←+⌿(Wc[LAYERNUM;;]+.×⍉x)+(Uc[LAYERNUM;;]+.×⍉hprev[LAYERNUM;t;])
  at[LAYERNUM;;t]←7○athat[LAYERNUM;;t]
 
- ithat←+⌿(Wi[LAYERNUM;;]+.×⍉x)+(Ui[LAYERNUM;;]+.×⍉hprev[LAYERNUM;;])
+ ithat←+/((1,d)⍴(Wi[LAYERNUM;;]+.×⍉x))+⍉(Ui[LAYERNUM;;]+.×⍉hprev[LAYERNUM;;])
  it[LAYERNUM;;t]←1÷(1+*(¯1×ithat))
 
- fthat←+⌿(Wf[LAYERNUM;;]+.×⍉x)+(Uf[LAYERNUM;;]+.×⍉hprev[LAYERNUM;;])
+ fthat←+/((1,d)⍴(Wf[LAYERNUM;;]+.×⍉x))+⍉(Uf[LAYERNUM;;]+.×⍉hprev[LAYERNUM;;])
  ft[LAYERNUM;;t]←1÷(1+*(¯1×fthat))
 
- othat←+⌿(Wo[LAYERNUM;;]+.×⍉x)+(Uo[LAYERNUM;;]+.×⍉hprev[LAYERNUM;;])
+ othat←+/((1,d)⍴(Wo[LAYERNUM;;]+.×⍉x))+⍉(Uo[LAYERNUM;;]+.×⍉hprev[LAYERNUM;;])
  ot[LAYERNUM;;t]←1÷(1+*(¯1×othat))
 
  tmp←(it[LAYERNUM;;]×at[LAYERNUM;;])+(ft[LAYERNUM;;]×cprev[LAYERNUM;;])
