@@ -100,10 +100,17 @@
  :EndWhile
 
  ⍝ gradient clipping
-
+ clip_grad←5 ⍝ Very high value, if norm is greater than this, then clip
  ⍝ square and sum all gradients of all layers
  LAYERNUM←INPUT
  grad_ss←input_grad_ss
  LAYERNUM←OUTPUT
  grad_ss←grad_ss+output_grad_ss
  grad_norm←(grad_ss)*0.5
+
+ :If gradsum>clip_grad
+     (Wa Wf Wi Wo)←(Wa Wf Wi Wo)÷(gradsum÷clip_grad)
+     (Ua Uf Ui Uo)←(Ua Uf Ui Uo)÷(gradsum÷clip_grad)
+ :EndIf
+ (Wa Wf Wi Wo)←(Wa Wf Wi Wo)-lr×(Wa Wf Wi Wo)
+ (Ua Uf Ui Uo)←(Ua Uf Ui Uo)-lr×(Ua Uf Ui Uo)
