@@ -1,5 +1,5 @@
  z←i input_forward x;o
- ⍝ forward prop input layers (LSTM+Emb)
+ ⍝ forward prop input layers (Emb+LSTM)
 
- o←i lstm_forwardpass x
- z←emb_forwardpass o
+ o←i emb_forwardpass x
+ z←i lstm_forwardpass o
