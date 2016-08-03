@@ -109,8 +109,8 @@
  grad_norm←(grad_ss)*0.5
 
  :If gradsum>clip_grad
-     (Wa Wf Wi Wo)←(Wa Wf Wi Wo)÷(gradsum÷clip_grad)
+     (Wa Wf Wi Wo)←(Wa Wf Wi Wo we_W sm_W)÷(gradsum÷clip_grad)
      (Ua Uf Ui Uo)←(Ua Uf Ui Uo)÷(gradsum÷clip_grad)
  :EndIf
- (Wa Wf Wi Wo)←(Wa Wf Wi Wo)-lr×(Wa Wf Wi Wo)
+ (Wa Wf Wi Wo we_W sm_W)←(Wa Wf Wi Wo we_W sm_W)-lr×(Wa Wf Wi Wo we_W sm_W)
  (Ua Uf Ui Uo)←(Ua Uf Ui Uo)-lr×(Ua Uf Ui Uo)
