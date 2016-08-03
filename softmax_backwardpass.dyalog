@@ -1,15 +1,16 @@
- z←counter softmax_backwardpass delta
+ z←t softmax_backwardpass target
 
- :If counter>1
-     sm_d←sm_pred[;counter-1]
+ sm_target←sm_target,target
+ :If t>1
+     sm_d←sm_pred[;t-1]
  :Else
-     sm_d←sm_pred[;counter]
+     sm_d←sm_pred[;t]
  :EndIf
  sm_d[target]←sm_d[target]-1
- :If counter>1
-     sm_dW←sm_d×.∘sm_xt[;counter-1] ⍝ outer product
+ :If t>1
+     sm_dW←sm_d×.∘sm_xt[;t-1] ⍝ outer product
  :Else
-     sm_dW←sm_d×.∘sm_xt[;counter]
+     sm_dW←sm_d×.∘sm_xt[;t]
  :EndIf
  sm_delta←sm_W+.×sm_d
  z←sm_delta
