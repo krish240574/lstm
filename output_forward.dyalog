@@ -3,4 +3,4 @@
  ⍝ output layer, forward pass
  h←t emb_forwardpass x
  h←t lstm_forwardpass h
- z←t softmax_forwardpass h
+ z←t softmax_forwardpass 
