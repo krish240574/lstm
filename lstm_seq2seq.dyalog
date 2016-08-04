@@ -3,13 +3,14 @@
  d←10   ⍝ number of hidden units/memory cells
  esz←10 ⍝ size of embedding layer
  n←2    ⍝ size of input sequence
+ v←4    ⍝ vocab size
 
  INPUT←1
  OUTPUT←2
  ⍝ Word embedding layer
- we_W←(2,d,esz)⍴((1000?1000)÷1000000) ⍝ we need 2 layers
+ we_W←(2,v,esz)⍴((1000?1000)÷1000000) ⍝ we need 2 layers
  we_dW←(⍴we_W)⍴0
- we_x←(2,1,d)⍴0
+ we_x←'null'
 
  ⍝ Softmax layer
  sm_W←(n,d)⍴((1000?1000)÷1000000)
@@ -23,11 +24,11 @@
  W←(2,(4×d),(n+d))⍴((1000?1000)÷1000000)
 
  ⍝ per cell Ws and Us
- Wc←(2,n,d)⍴((1000?1000)÷1000000)
- Wi←(2,n,d)⍴((1000?1000)÷1000000)
- Wf←(2,n,d)⍴((1000?1000)÷1000000)
- Wo←(2,n,d)⍴((1000?1000)÷1000000)
- Uc←(2,d,d)⍴((1000?1000)÷1000000)
+ Wa←(2,esz,d)⍴((1000?1000)÷1000000)
+ Wi←(2,esz,d)⍴((1000?1000)÷1000000)
+ Wf←(2,esz,d)⍴((1000?1000)÷1000000)
+ Wo←(2,esz,d)⍴((1000?1000)÷1000000)
+ Ua←(2,d,d)⍴((1000?1000)÷1000000)
  Ui←(2,d,d)⍴((1000?1000)÷1000000)
  Uf←(2,d,d)⍴((1000?1000)÷1000000)
  Uo←(2,d,d)⍴((1000?1000)÷1000000)
@@ -44,6 +45,21 @@
  ht←(2,1,d)⍴0
  cprev←(2,1,d)⍴0
  hprev←(2,1,d)⍴0
+ hprevtoa←(2,1,d)⍴0
+ hprevtoi←(2,1,d)⍴0
+ hprevtof←(2,1,d)⍴0
+ hprevtoo←(2,1,d)⍴0
+ dhprev←(2,1,d)⍴0
+
+ deltaWa←(2,d,d)⍴0
+ deltaWf←(2,d,d)⍴0
+ deltaWi←(2,d,d)⍴0
+ deltaWo←(2,d,d)⍴0
+ deltaUa←(2,d,d)⍴0
+ deltaUf←(2,d,d)⍴0
+ deltaUi←(2,d,d)⍴0
+ deltaUo←(2,d,d)⍴0
+
 
  ⍝   backWcrd pass  - LSTM
  dExdct←(2,1,d)⍴0
@@ -67,6 +83,7 @@
  LAYERNUM←INPUT
  ⍝ input layers - forward pass
  t←1
+ ;
  :While t≤n
      h←t input_forward XX[;t]
      t←t+1
@@ -91,10 +108,10 @@
      delta←t output_backward delta
      t←t-1
  :EndWhile
-
+ ;
  LAYERNUM←INPUT
  X←⌽(XX)
- t←n
+ t←(¯1↑⍴X)
  :While t≥1
      delta←(1,esz)⍴0
      delta←t input_backward delta
